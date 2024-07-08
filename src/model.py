@@ -4,7 +4,7 @@ from keras.layers import *
 from tensorflow.keras import backend as K
 
 
-@keras.saving.register_keras_serializable()
+@keras.saving.register_keras_serializable(name='dice_coef')
 def dice_coef(y_true, y_pred, smooth=1.0):
     y_true_f = K.flatten(y_true)
     y_pred_f = K.flatten(y_pred)
@@ -13,9 +13,9 @@ def dice_coef(y_true, y_pred, smooth=1.0):
     return (2. * intersection + smooth) / (union + smooth)
 
 
-@keras.saving.register_keras_serializable()
+@keras.saving.register_keras_serializable(name='dice_coef_loss')
 def dice_coef_loss(y_true, y_pred):
-    return K.mean(1-dice_coef(y_true, y_pred))
+    return K.mean(1 - dice_coef(y_true, y_pred))
 
 
 def double_conv(x, n_filters):
@@ -55,4 +55,3 @@ def build_model(img_size=(128, 128, 3), num_classes=2):
     outputs = Conv2D(num_classes, 1, padding="same", activation='sigmoid')(u9)
     unet_model = tf.keras.Model(inputs, outputs, name="U-Net")
     return unet_model
-

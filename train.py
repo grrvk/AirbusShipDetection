@@ -1,3 +1,5 @@
+import keras
+
 from src.dataset import preprocess
 from utils import prepare_log_folder
 import argparse
@@ -5,7 +7,7 @@ from src.model import dice_coef, dice_coef_loss, build_model
 from keras.callbacks import ModelCheckpoint, CSVLogger
 import tensorflow as tf
 import os
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import Adam
 
 
 def set_callbacks(log_dir):
@@ -20,6 +22,7 @@ def set_callbacks(log_dir):
 
 
 def train(path: str, LR: float, loss: str, epochs: int, batch_size: int):
+    keras.saving.get_custom_objects().clear()
     X_train, Y_train, X_val, Y_val, X_test, Y_test = preprocess(path, 0.6)
     log_dir = prepare_log_folder()
 
