@@ -13,7 +13,6 @@ from tensorflow.keras.optimizers.legacy import Adam
 def set_callbacks(log_dir):
     checkpointer = ModelCheckpoint(filepath=os.path.join(log_dir, 'checkpoint.keras'),
                                    verbose=1,
-                                   save_best_only=True,
                                    monitor="dice_coef_loss")
 
     csv_logger = CSVLogger(os.path.join(log_dir, 'log.csv'), append=True, separator=';')
@@ -23,7 +22,7 @@ def set_callbacks(log_dir):
 
 def train(path: str, LR: float, loss: str, epochs: int, batch_size: int):
     keras.saving.get_custom_objects().clear()
-    X_train, Y_train, X_val, Y_val, X_test, Y_test = preprocess(path, 0.6)
+    X_train, Y_train, X_val, Y_val, X_test, Y_test = preprocess(path, 0.4)
     log_dir = prepare_log_folder()
 
     optimizer = Adam(learning_rate=LR)

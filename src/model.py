@@ -15,7 +15,7 @@ def dice_coef(y_true, y_pred, smooth=1.0):
 
 @keras.saving.register_keras_serializable(name='dice_coef_loss')
 def dice_coef_loss(y_true, y_pred):
-    return K.mean(1 - dice_coef(y_true, y_pred))
+    return 1 - dice_coef(y_true, y_pred)
 
 
 def double_conv(x, n_filters):

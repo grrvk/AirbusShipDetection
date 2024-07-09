@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
@@ -42,8 +43,7 @@ def split_data(data, train_rate):
     remaining_rate = (1 - train_rate) / 2
     image_names = data['ImageId'].drop_duplicates().tolist()
     train_image_names = image_names[:int(len(image_names) * train_rate)]
-    val_image_names = image_names[
-                      int(len(image_names) * train_rate):int(len(image_names) * (train_rate + remaining_rate))]
+    val_image_names = image_names[int(len(image_names) * train_rate):int(len(image_names) * (train_rate + remaining_rate))]
     test_image_names = image_names[int(len(image_names) * (train_rate + remaining_rate)):]
     return train_image_names, val_image_names, test_image_names
 
@@ -69,7 +69,6 @@ def prepare_masks(masks, le, classes=2):
     masks_reshaped = masks.reshape(-1, 1)
     masks_labeled = le.fit_transform(masks_reshaped.ravel())
     masks_orig = masks_labeled.reshape(n, h, w)
-
     masks = np.expand_dims(masks_orig, axis=3)
     return to_categorical(masks, num_classes=classes)
 
@@ -81,7 +80,7 @@ def reshape(Y):
     return Y
 
 
-def preprocess(path, train_split_rate=0.6):
+def preprocess(path, train_split_rate=0.8):
     train_folder_path, train_csv_path = file_check(path)
     data = pd.read_csv(train_csv_path).dropna()
     train_image_names, val_image_names, test_image_names = split_data(data, train_split_rate)

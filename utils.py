@@ -1,5 +1,7 @@
 import os
 from glob import glob
+import cv2
+from matplotlib import pyplot as plt
 
 
 def file_check(path, tr_name='train_v2'):
@@ -15,3 +17,10 @@ def file_check(path, tr_name='train_v2'):
 def prepare_log_folder(log_dir='log'):
     os.makedirs(log_dir, exist_ok=True)
     return log_dir
+
+
+def save_image(image, path):
+    plt.axis('off')
+    plt.imshow(image)
+    image[image == 1] = 255
+    cv2.imwrite(path, image)
