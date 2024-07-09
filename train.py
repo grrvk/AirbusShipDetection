@@ -1,5 +1,4 @@
 import keras
-
 from src.dataset import preprocess
 from utils import prepare_log_folder
 import argparse
@@ -11,6 +10,11 @@ from tensorflow.keras.optimizers.legacy import Adam
 
 
 def set_callbacks(log_dir):
+    """
+    Set callbacks
+    :param log_dir: path to the directory to save log csv file
+    :return: array of callbacks
+    """
     checkpointer = ModelCheckpoint(filepath=os.path.join(log_dir, 'checkpoint.keras'),
                                    verbose=1,
                                    monitor="dice_coef_loss")
@@ -21,25 +25,41 @@ def set_callbacks(log_dir):
 
 
 def train(path: str, LR: float, loss: str, epochs: int, batch_size: int):
-    keras.saving.get_custom_objects().clear()
-    X_train, Y_train, X_val, Y_val, X_test, Y_test = preprocess(path, 0.4)
-    log_dir = prepare_log_folder()
+    """
+    Train and evaluate the model
+    :param path: path to the dataset folder
+    :param LR: learning rate value
+    :param loss: model loss type
+    :param epochs: number of epochs for training
+    :param batch_size: batch size for training
+    :return: ---
+    """
+    # get train, validation and test datasets
+    X_train, Y_train, X_val, Y_val, X_test, Y_test = preprocess(path, 0.6)
+    log_dir = prepare_log_folder()  # prepare directory to save model and log.csv
 
-    optimizer = Adam(learning_rate=LR)
-    metrics = [dice_coef, dice_coef_loss, tf.keras.metrics.MeanIoU(num_classes=2)]
+    optimizer = Adam(learning_rate=LR)  # set model optimizer
+    metrics = [dice_coef, dice_coef_loss, tf.keras.metrics.MeanIoU(num_classes=2)]  # set model metrics
 
+    # build and compile the model
     unet_model = build_model()
     unet_model.compile(optimizer=optimizer,
                        loss=loss,
                        metrics=metrics)
 
+    # get callbacks array
     callbacks = set_callbacks(log_dir)
+
+    # train and validate the model
     history = unet_model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs,
                              verbose=1, validation_data=(X_val, Y_val),
-                             callbacks=callbacks)
+                             callbacks=callbacks) if X_val \
+        else unet_model.fit(X_train, Y_train, batch_size=batch_size, epochs=epochs, callbacks=callbacks)
 
-    unet_model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
-    unet_model.evaluate(X_test, Y_test, batch_size=batch_size)
+    # evaluate the model
+    if X_test:
+        unet_model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
+        unet_model.evaluate(X_test, Y_test, batch_size=batch_size)
 
 
 if __name__ == '__main__':
@@ -56,4 +76,4 @@ if __name__ == '__main__':
                         help='Size of a batch')
 
     args = parser.parse_args()
-    train(args.dataset_path, args.LR, args.loss, args.epochs, args.batch_size)
+    train(args.dataset_path, args.LR, args.loss, args.epochs, args.batch_size)  # run training

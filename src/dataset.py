@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
@@ -11,6 +10,11 @@ from utils import file_check
 
 
 def enc_to_pixels(enc):
+    """
+    Calculate actual pixel values in flattened image
+    :param enc: string of encoded pixels from train csv
+    :return: array of pixel values in flattened image
+    """
     # string to integer array
     enc = list(map(int, enc.split(' ')))
 
@@ -27,20 +31,38 @@ def enc_to_pixels(enc):
 
 
 def create_mask(image, encodes):
+    """
+    Create mask from encoded pixels
+    :param image: image as numpy array
+    :param encodes: dataframe containing encoded pixels for image
+    :return: mask as numpy array
+    """
+    # create 1d blank mask matrix
     w, h, _ = image.shape
     obj_map = np.zeros((w * h, 1), dtype=int)
 
+    # mark corresponding to encoded pixels objects on mask
     for i, (index, row) in enumerate(encodes.iterrows()):
-        rle_mask_pixels = enc_to_pixels(row['EncodedPixels'])
-        obj_map[rle_mask_pixels] = 255
+        true_pixels = enc_to_pixels(row['EncodedPixels'])
+        obj_map[true_pixels] = 255
 
+    # reshape mask matrix to 2d
     mask = np.reshape(obj_map, (w, h)).T
     return mask
 
 
 def split_data(data, train_rate):
+    """
+    Split data into train, validation and test sets by image ids
+    :param data: csv data dataframe
+    :param train_rate: split rate for train data
+    :return: lists of train, validation and test image names
+    """
+    # check is rate valid, calculate val and test rates
     assert (0 < train_rate <= 1)
     remaining_rate = (1 - train_rate) / 2
+
+    # split data into train, val, test according to rates
     image_names = data['ImageId'].drop_duplicates().tolist()
     train_image_names = image_names[:int(len(image_names) * train_rate)]
     val_image_names = image_names[int(len(image_names) * train_rate):int(len(image_names) * (train_rate + remaining_rate))]
@@ -49,10 +71,19 @@ def split_data(data, train_rate):
 
 
 def get_dataset(data, names, directory: str):
+    """
+    Create numpy arrays of images and masks
+    :param data: csv data dataframe
+    :param names: image names to create masks for
+    :param directory: path to images directory
+    :return: numpy arrays of images and masks
+    """
+    # if due to split there is no data - return None
     if len(names) == 0: return None, None
     images = []
     masks = []
 
+    # create masks for images
     for i, image_name in enumerate(names):
         encodes = data[data['ImageId'] == image_name]
         image = cv2.imread(os.path.join(directory, image_name))
@@ -64,7 +95,14 @@ def get_dataset(data, names, directory: str):
     return np.array(images), np.array(masks)
 
 
-def prepare_masks(masks, le, classes=2):
+def reshape(masks, classes=2):
+    """
+    :param masks: numpy array of masks
+    :param classes: number of classes (class types + background)
+    :return: reshaped and labeled masks
+    """
+    if masks is None: return None
+    le = LabelEncoder()
     n, h, w = masks.shape
     masks_reshaped = masks.reshape(-1, 1)
     masks_labeled = le.fit_transform(masks_reshaped.ravel())
@@ -73,22 +111,24 @@ def prepare_masks(masks, le, classes=2):
     return to_categorical(masks, num_classes=classes)
 
 
-def reshape(Y):
-    if Y is None: return None
-    le = LabelEncoder()
-    Y = prepare_masks(Y, le)
-    return Y
-
-
 def preprocess(path, train_split_rate=0.8):
+    """
+    Create datasets for training, validation and testing
+    :param path: path to csv with data
+    :param train_split_rate: rate to split data between train and else
+    :return: X, Y (images and masks) for training, validation and testing
+    """
+    # check are images directory and csv file paths are valid and existing
     train_folder_path, train_csv_path = file_check(path)
+
+    # read csv into pandas dataframe
     data = pd.read_csv(train_csv_path).dropna()
+
+    # split data into train, validation and test
     train_image_names, val_image_names, test_image_names = split_data(data, train_split_rate)
+
+    # create datasets
     X_train, Y_train = get_dataset(data, train_image_names, train_folder_path)
     X_val, Y_val = get_dataset(data, val_image_names, train_folder_path)
     X_test, Y_test = get_dataset(data, test_image_names, train_folder_path)
-    print('Train dataset shape:\n'
-          f'X: {X_train.shape}, Y: {Y_train.shape}\n'
-          'Val dataset shape:\n'
-          f'X: {X_val.shape}, Y: {Y_val.shape}\n')
     return X_train, reshape(Y_train), X_val, reshape(Y_val), X_test, reshape(Y_test)
