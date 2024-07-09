@@ -1,11 +1,14 @@
+"""
+Script to create masks for images and prepare dataset for training.
+"""
+
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import os
-
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical
-
 from utils import file_check
 
 
@@ -48,6 +51,9 @@ def create_mask(image, encodes):
 
     # reshape mask matrix to 2d
     mask = np.reshape(obj_map, (w, h)).T
+    plt.imshow(mask)
+    plt.axis('off')
+    plt.show()
     return mask
 
 

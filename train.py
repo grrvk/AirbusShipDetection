@@ -1,4 +1,7 @@
-import keras
+"""
+Script to train the model
+"""
+
 from src.dataset import preprocess
 from utils import prepare_log_folder
 import argparse

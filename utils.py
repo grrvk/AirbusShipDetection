@@ -1,3 +1,7 @@
+"""
+Additional small scripts to help working with files
+"""
+
 import os
 from glob import glob
 import cv2

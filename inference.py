@@ -1,3 +1,7 @@
+"""
+Script to inference pretrained model on image or dataset
+"""
+
 import tensorflow as tf
 import numpy as np
 import cv2

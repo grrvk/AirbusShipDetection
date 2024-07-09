@@ -1,3 +1,7 @@
+"""
+Script to build a simple U-Net model
+"""
+
 import tensorflow as tf
 import keras
 from keras.layers import *
