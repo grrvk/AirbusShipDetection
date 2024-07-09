@@ -17,10 +17,10 @@ where done several steps:
 3. Assign values on the actual pixel positions value 255
 4. Reshape 1d array to 2d array with width and height as the actual image
 
-Example    
-![logo]    
-
-[logo]: samples/mask_example.png
+<figure>
+  <img src="samples/mask_example.png" alt="">
+  <figcaption style="text-align: center">Image and mask example</figcaption>
+</figure>
 
 To create datasets, list of image ids was split by rates, and then for training, validation and testing according to 
 the corresponding image ids masks were created and labeled, alldata was reshaped and then stored as numpy arrays.    
